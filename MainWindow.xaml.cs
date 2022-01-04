@@ -129,7 +129,7 @@ namespace ExportGanttToPDF
             saveFileDialog.DefaultExt = "PDF";
             saveFileDialog.FilterIndex = 1;
 
-            //Saving the images in Pdf           
+            // Saving the images in Pdf
             PdfDocument doc = new PdfDocument();
             doc.PageSettings = new PdfPageSettings(new SizeF(3000, 4000));
             PdfPage page = doc.Pages.Add();
