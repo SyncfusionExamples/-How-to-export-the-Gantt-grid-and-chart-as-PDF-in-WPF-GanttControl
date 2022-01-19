@@ -22,7 +22,7 @@ namespace ExportGanttToPDF
     {
         #region Fields
 
-        private Grid layoutgrid;
+        private Grid layoutGrid;
         private GanttGrid ganttGrid;
         private ScrollViewer chart;
 
@@ -49,14 +49,14 @@ namespace ExportGanttToPDF
         /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
         private void ExportBtn_Click(object sender, RoutedEventArgs e)
         {
-            Border child = VisualTreeHelper.GetChild(Gantt, 0) as Border;
-            this.layoutgrid = VisualTreeHelper.GetChild(child, 0) as Grid;
+            Border child = VisualTreeHelper.GetChild(this.Gantt, 0) as Border;
+            this.layoutGrid = VisualTreeHelper.GetChild(child, 0) as Grid;
 
             // To get the gantt grid from visual tree
-            this.ganttGrid = VisualTreeHelper.GetChild(layoutgrid, 0) as GanttGrid;
+            this.ganttGrid = VisualTreeHelper.GetChild(this.layoutGrid, 0) as GanttGrid;
 
             // To get the gantt chart from visual tree
-            this.chart = Gantt.FindName<ScrollViewer>("PART_ScheduleViewScrollViewer");
+            this.chart = this.Gantt.FindName<ScrollViewer>("PART_ScheduleViewScrollViewer");
             this.ExportGanttToPDF();
         }
 
@@ -65,46 +65,40 @@ namespace ExportGanttToPDF
         /// </summary>
         private void ExportGanttToPDF()
         {
-            this.layoutgrid.Children.Remove(this.ganttGrid);
-            Canvas InnerCanvas = new Canvas();
-            InnerCanvas.Children.Add(this.ganttGrid);
-            InnerCanvas.Width = 300;
-            InnerCanvas.Height = 500;
-            System.Drawing.Size size = new System.Drawing.Size((int)InnerCanvas.ActualWidth, (int)InnerCanvas.ActualHeight);
-            InnerCanvas.Arrange(new Rect(0, 0, size.Width, size.Height));
-            InnerCanvas.UpdateLayout();
+            this.layoutGrid.Children.Remove(this.ganttGrid);
+            Canvas innerCanvas = new Canvas();
+            innerCanvas.Children.Add(this.ganttGrid);
+            innerCanvas.Arrange(new Rect());
+            innerCanvas.UpdateLayout();
             this.ganttGrid.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
-            this.Gantt.Arrange(new Rect(new System.Windows.Size(this.ganttGrid.ActualWidth, this.ganttGrid.ActualHeight)));
-            RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap((int)this.ganttGrid.ActualWidth, (int)this.ganttGrid.ActualHeight, 96, 96, PixelFormats.Default);
+            this.Gantt.Arrange(new Rect());
+            RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap(
+                (int)this.ganttGrid.ActualWidth, (int)this.ganttGrid.ActualHeight, 96, 96, PixelFormats.Default);
             renderTargetBitmap.Render(this.ganttGrid);
-            JpegBitmapEncoder jpegBitmapEncoder = new JpegBitmapEncoder();
-            jpegBitmapEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
-            FileStream stream = new FileStream("grid.jpg",
-            FileMode.OpenOrCreate, FileAccess.Write);
-            jpegBitmapEncoder.Save(stream);
+            PngBitmapEncoder bitmapEncoder = new PngBitmapEncoder();
+            bitmapEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
+            FileStream stream = new FileStream("grid.jpg", FileMode.OpenOrCreate, FileAccess.Write);
+            bitmapEncoder.Save(stream);
             stream.Close();
-            InnerCanvas.Children.Remove(this.ganttGrid);
-            this.layoutgrid.Children.Add(this.ganttGrid);
+            innerCanvas.Children.Remove(this.ganttGrid);
+            this.layoutGrid.Children.Insert(0, this.ganttGrid);
 
             this.Gantt.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
-            this.Gantt.Arrange(new Rect(new System.Windows.Size(this.Gantt.DesiredSize.Width, this.Gantt.DesiredSize.Height)));
+            this.Gantt.Arrange(new Rect());
             RenderTargetBitmap bmp = new RenderTargetBitmap(
                    (int)this.Gantt.ActualWidth, (int)this.Gantt.ActualHeight, 96, 96, PixelFormats.Default);
-            bmp.Render(chart);
-            int width = (int)(this.Gantt.DesiredSize.Width - chart.ActualWidth);
-            CroppedBitmap crpBmp = new CroppedBitmap(bmp, new Int32Rect(width, 0, (int)chart.ActualWidth, (int)chart.ActualHeight));
-            PngBitmapEncoder bitmapEncoder = new PngBitmapEncoder();
+            bmp.Render(this.chart);
+            int width = (int)(this.Gantt.DesiredSize.Width - this.chart.ActualWidth);
+            CroppedBitmap crpBmp = new CroppedBitmap(bmp, new Int32Rect(width, 0, (int)this.chart.DesiredSize.Width, (int)this.chart.ActualHeight));
+            bitmapEncoder = new PngBitmapEncoder();
             bitmapEncoder.Frames.Add(BitmapFrame.Create(crpBmp));
-            FileStream chartstream = new FileStream("chart.jpg",
-            FileMode.OpenOrCreate, FileAccess.Write);
-            bitmapEncoder.Save(chartstream);
-            chartstream.Close();
+            stream = new FileStream("chart.jpg", FileMode.OpenOrCreate, FileAccess.Write);
+            bitmapEncoder.Save(stream);
+            stream.Close();
 
             //// Gets the bitmap frame from the images.
-            BitmapFrame frame1 = BitmapDecoder.Create(new Uri("grid.jpg", UriKind.Relative), BitmapCreateOptions.None, BitmapCacheOption.OnLoad).Frames.First();
-            BitmapFrame frame2 = BitmapFrame.Create(new Uri("chart.jpg", UriKind.Relative),
-                                      BitmapCreateOptions.None,
-                                      BitmapCacheOption.OnLoad);
+            BitmapFrame frame1 = BitmapFrame.Create(new Uri("grid.jpg", UriKind.Relative), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+            BitmapFrame frame2 = BitmapFrame.Create(new Uri("chart.jpg", UriKind.Relative), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
 
             // Draws the images into a DrawingVisual component
             DrawingVisual drawingVisual = new DrawingVisual();
@@ -115,23 +109,27 @@ namespace ExportGanttToPDF
             }
 
             // Converts the Visual (DrawingVisual) into a BitmapSource
-            RenderTargetBitmap bitmap = new RenderTargetBitmap((int)frame1.PixelWidth + frame2.PixelWidth, (int)frame2.PixelHeight, 96, 96, PixelFormats.Pbgra32);
+            RenderTargetBitmap bitmap = new RenderTargetBitmap(frame1.PixelWidth + frame2.PixelWidth, frame2.PixelHeight, 96, 96, PixelFormats.Pbgra32);
             bitmap.Render(drawingVisual);
-            var bitmapEncoder1 = new PngBitmapEncoder();
-            bitmapEncoder1.Frames.Add(BitmapFrame.Create(bitmap));
+            bitmapEncoder = new PngBitmapEncoder();
+            bitmapEncoder.Frames.Add(BitmapFrame.Create(bitmap));
 
             // Creates a PngBitmapEncoder and adds the BitmapSource to the frames of the encoder
             PngBitmapEncoder encoder = new PngBitmapEncoder();
             encoder.Frames.Add(BitmapFrame.Create(bitmap));
 
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.FileName = "Untited";
-            saveFileDialog.DefaultExt = "PDF";
-            saveFileDialog.FilterIndex = 1;
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                FileName = "Untited",
+                DefaultExt = "PDF",
+                FilterIndex = 1
+            };
 
             // Saving the images in Pdf
-            PdfDocument doc = new PdfDocument();
-            doc.PageSettings = new PdfPageSettings(new SizeF(3000, 4000));
+            PdfDocument doc = new PdfDocument
+            {
+                PageSettings = new PdfPageSettings(new SizeF(frame2.PixelWidth, frame2.PixelHeight))
+            };
             PdfPage page = doc.Pages.Add();
             PdfGraphics graphics = page.Graphics;
             if (saveFileDialog.ShowDialog() == true)
@@ -139,10 +137,9 @@ namespace ExportGanttToPDF
                 using (Stream saveStream = saveFileDialog.OpenFile())
                 {
                     encoder.Save(saveStream);
-                    bitmapEncoder1.Save(saveStream);
+                    bitmapEncoder.Save(saveStream);
                     saveStream.Seek(0, SeekOrigin.Begin);
-                    PdfBitmap image1 = new PdfBitmap(saveStream);
-                    graphics.DrawImage(image1, 0, 0);
+                    graphics.DrawImage(new PdfBitmap(saveStream), 0, 0);
                     saveStream.Close();
                 }
             }
