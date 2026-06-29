@@ -1,5 +1,5 @@
 # How-to-export-the-Gantt-grid-and-chart-as-PDF-in-WPF-GanttControl
-This article explains how to export the Syncfusion [WPF Gantt chart](https://www.syncfusion.com/wpf-controls/gantt) and grid (combined) to the PDF.
+This article explains how to export the [WPF Gantt chart](https://www.syncfusion.com/wpf-controls/gantt) and grid (combined) to the PDF.
 
 ![](Output.png)
 
