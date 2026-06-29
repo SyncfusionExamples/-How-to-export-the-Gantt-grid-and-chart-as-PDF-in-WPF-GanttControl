@@ -1,5 +1,5 @@
 # How-to-export-the-Gantt-grid-and-chart-as-PDF-in-WPF-GanttControl
-This article explains how to export the Syncfusion WPF Gantt chart and grid (combined) to the PDF.
+This article explains how to export the Syncfusion [WPF Gantt chart](https://www.syncfusion.com/wpf-controls/gantt) and grid (combined) to the PDF.
 
 ![](Output.png)
 
@@ -91,7 +91,9 @@ doc.Close(true);
 
 ## See also
 
-[How to add custom tooltip to Gantt](https://help.syncfusion.com/wpf/gantt/customtooltip)
+[Explore WPF Gantt Chart](https://www.syncfusion.com/wpf-controls/gantt)
+
+[How to add custom tooltip to Gantt](https://help.syncfusion.com/wpf/gantt/custom-tooltip)
 
 [How to define your own schedule for Gantt to track the progress of projects](https://help.syncfusion.com/wpf/gantt/custom-schedule)
 
